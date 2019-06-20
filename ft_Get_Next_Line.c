@@ -29,6 +29,13 @@ int		ft_nextline(char **str, char **line, int fd, int ret)  //takes the str and 
         if (str[fd][0] == '\0')
             ft_strdel(&str[fd]);
     }
+    else if (str[fd][length] == '\0')           //if this check goes through this will be the final part of the program//
+    {
+        if (ret == BUFF_SIZE)                   //check to make sure the read completed, if it is equal to the buff_size it
+            return (get_next_line(fd, line));   //read what it was supposed to and needs to continue//
+        *line = ft_strdub(str[fd]);             //set the line equal to the contents of the static str and
+        ft_strdel(&str[fd]);                    // delete the string as we will no longer be using it//
+    }
     return (1);
 }
 
@@ -44,13 +51,17 @@ int     ft_get_next_line(const int fd, char **line)
     while (ret = read(fd, buffer, BUFF_SIZE) > 0)
     {
         buffer[ret] = '\0';          //allocate a '\0' at the end the read (ret = 1 after the total read value), this will act as the EOF character//
-        if (str[fd] < 0)            //check to see if there is memory//
+        if (str[fd] == NULL)            //check to see if there is memory//
             str[fd] = ft_strnew(1);
         temp = ft_strjoin (str[fd], buffer);       //insert the read into the str[fd], whilst allocating enough space this will write of the 
         free (str[fd]);                            //existing '\0' of the first string//
         str[fd] = temp;                             //after free'ing the str[fd] memory re allocate the with the tmp value//
-        if (strchr (buffer, '\n'))
+        if (strchr (buffer, '\n'))              //check for a '\n' and if found break and check ret values//
             break;
     }
-	
+	if (ret < 0)
+        return (-1);
+    else if ((ret == 0 && str[fd] == NULL) || str[fd][0] == '\0')
+        return (0);
+    return (ft_nextline(str, line, fd, ret));
 }
